@@ -17,4 +17,5 @@ Dependences:
 
 
 Page source:
+
 http://scikit-image.org/docs/dev/auto_examples/transform/plot_ssim.html
