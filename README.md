@@ -1,5 +1,5 @@
 # Comparing-images
-Structural similarity index (SSIM) and mean squared error (MSE)
+Structural similarity (SSIM) index and mean squared error (MSE)
 
 
 
