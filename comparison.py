@@ -5,13 +5,11 @@ Created on Thu Sep  6 05:57:59 2018
 
 @author: gag
 
-Script que calcula los estadísticos :
+Script that calculates statistics:
  - Structural similarity (SSIM) index 
  - Mean squared error (MSE)
-sobre imagenes que permite realizar comparaciones entre 
-variables estimadas. 
+to the images. They allow comparisons between estimated variables.
 """
-
 
 
 import numpy as np
