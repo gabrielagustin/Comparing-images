@@ -12,8 +12,9 @@ Structural similarity (SSIM) index and mean squared error (MSE)
 
 
 
-SSIM:0.156
-RMSE:0.389
+SSIM: 0.156 
+
+RMSE: 0.389
 
 
 Dependences:
