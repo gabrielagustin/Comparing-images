@@ -12,17 +12,16 @@ to the images. They allow comparisons between estimated variables.
 """
 
 
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from osgeo import gdal
 from skimage import data, img_as_float
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from skimage.measure import compare_mse
-
-
-from osgeo import gdal
 
 from skimage.measure import compare_ssim as ssim
 from sklearn.metrics import mean_squared_error
@@ -34,38 +33,36 @@ def mse(x, y):
     return np.linalg.norm(x - y)
 
 
-
 gdal.UseExceptions()
+
 fileET_modis = "/.../ET_modis.img"
 src_ds_ET_modis, bandET_modis, GeoTET_modis, ProjectET_modis = functions.openFileHDF(fileET_modis,1)
-
-
 
 
 fileET_modeled = "/.../ETSM_final.img"
 src_ds_ET_modeled, bandET_modeled, GeoTET_modeled, ProjectET_modeled = functions.openFileHDF(fileET_modeled,1)
 
-
-#### con ambas imagenes se crea un objeto pandas, y luego se realiza el filtrado por 
-#### pixel segun el valor de evapotranspiracion
+#### with both images a pandas object is created, and 
 dataset = pd.DataFrame({'ET_modis':bandET_modis.flatten(),'ET_mod':bandET_modeled.flatten()})
 
+####then the pixel filtering is performed according to the evapotranspiration value
 dataset = dataset[dataset.ET_modis < 500]
 
 print (dataset)
 print(np.max(dataset.ET_modis))
 
 
-#### comparación inicial sin ruido, imagen ET modis
+#### initial comparison without noise, ET modis image
 #mse_none = mse(bandET_modis, bandET_modis)
 #mse_none = compare_mse(bandET_modis, bandET_modis)
+
 mse_none = mean_squared_error(y_true = dataset.ET_modis , y_pred = dataset.ET_modis)
 mse_none = np.sqrt(mse_none)
 
 ssim_none = ssim(bandET_modis, bandET_modis, data_range = 350- 0)
 
 
-#### comparacion entre imagen ET de modis y la imagen de ET modelada
+#### comparison between modis ET image and modeled ET image
 #mse_noise = mse(bandET_modis, bandET_modeled)
 
 mse_noise= mean_squared_error(y_true = dataset.ET_modis , y_pred = dataset.ET_mod)
@@ -75,16 +72,13 @@ mse_noise = np.sqrt(mse_noise)
 ssim_noise = ssim(bandET_modis, bandET_modeled, data_range= 350- 0)
 
 
-
 label = 'RMSE: {:.2f}, SSIM: {:.2f}'
 
 transform = GeoTET_modis
 xmin,xmax,ymin,ymax=transform[0],transform[0]+transform[1]*src_ds_ET_modis.RasterXSize,transform[3]+transform[5]*src_ds_ET_modis.RasterYSize,transform[3]
 
 
-
-
-#### se grafican las imágenes con sus respectivos estadísticos
+#### images are plotted with their respective statisticians
 
 fig, ax = plt.subplots()
 im1 = ax.imshow(bandET_modis, extent=[xmin,xmax,ymin,ymax], interpolation='None', cmap=plt.cm.gray, vmin=0, vmax=300)
