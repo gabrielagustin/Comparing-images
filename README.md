@@ -3,7 +3,17 @@ Structural similarity (SSIM) index and mean squared error (MSE)
 
 
 
+<p align="center">
+  <img width=285 src="2016_05_15_ETObserved.png"/>
+  <img width=285 src="2016_05_15_ETmodeled.png"/>
+  <img width=285 src="2016_05_15_ET_RMSE.png"/>
+</p>
 
+
+
+
+SSIM:0.156
+RMSE:0.389
 
 
 Dependences:
