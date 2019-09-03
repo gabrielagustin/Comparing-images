@@ -12,124 +12,82 @@ to the images. They allow comparisons between estimated variables.
 """
 
 
-
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
+import functions
 
-from osgeo import gdal
-from skimage import data, img_as_float
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from skimage.measure import compare_mse
 
 from skimage.measure import compare_ssim as ssim
 from sklearn.metrics import mean_squared_error
-from sklearn.metrics import explained_variance_score
 
-import functions
+fechas= []
+fechas.append("2016_05_15")
 
-def mse(x, y):
-    return np.linalg.norm(x - y)
+#### Et observada a 36km
+fileETObs = "/media/gag/Datos/Imagenes_satelitales/ET/COMPARACION/"+fechas[0]+"/ETobs/mapa_ETobs36km.asc"
+src_ds_ETObs, bandETObs, GeoTETObs, ProjectETObs = functions.openFileHDF(fileETObs, 1)
 
+#### Et modelada a 36km
+fileETModelada = "/media/gag/Datos/Imagenes_satelitales/ET/COMPARACION/"+fechas[0]+"/ETmodelada/ET_modelado_"+fechas[0]
+src_ds_ETModelada, bandETModelada, GeoTETModelada, ProjectETModelada = functions.openFileHDF(fileETModelada, 1)
 
-gdal.UseExceptions()
-
-fileET_modis = "/.../ET_modis.img"
-src_ds_ET_modis, bandET_modis, GeoTET_modis, ProjectET_modis = functions.openFileHDF(fileET_modis,1)
-
-
-fileET_modeled = "/.../ETSM_final.img"
-src_ds_ET_modeled, bandET_modeled, GeoTET_modeled, ProjectET_modeled = functions.openFileHDF(fileET_modeled,1)
-
-#### with both images a pandas object is created, and 
-dataset = pd.DataFrame({'ET_modis':bandET_modis.flatten(),'ET_mod':bandET_modeled.flatten()})
-
-####then the pixel filtering is performed according to the evapotranspiration value
-dataset = dataset[dataset.ET_modis < 500]
-
-print (dataset)
-print(np.max(dataset.ET_modis))
-
-
-#### initial comparison without noise, ET modis image
-#mse_none = mse(bandET_modis, bandET_modis)
-#mse_none = compare_mse(bandET_modis, bandET_modis)
-
-mse_none = mean_squared_error(y_true = dataset.ET_modis , y_pred = dataset.ET_modis)
-mse_none = np.sqrt(mse_none)
-
-ssim_none = ssim(bandET_modis, bandET_modis, data_range = 350- 0)
-
-
-#### comparison between modis ET image and modeled ET image
-#mse_noise = mse(bandET_modis, bandET_modeled)
-
-mse_noise= mean_squared_error(y_true = dataset.ET_modis , y_pred = dataset.ET_mod)
-mse_noise = np.sqrt(mse_noise)
-#mse_noise= compare_mse(bandET_modis, bandET_modeled)
-
-ssim_noise = ssim(bandET_modis, bandET_modeled, data_range= 350- 0)
-
-
-label = 'RMSE: {:.2f}, SSIM: {:.2f}'
-
-transform = GeoTET_modis
-xmin,xmax,ymin,ymax=transform[0],transform[0]+transform[1]*src_ds_ET_modis.RasterXSize,transform[3]+transform[5]*src_ds_ET_modis.RasterYSize,transform[3]
-
-
-#### images are plotted with their respective statisticians
+transform = GeoTETObs
+xmin,xmax,ymin,ymax=transform[0],transform[0]+transform[1]*src_ds_ETObs.RasterXSize,transform[3]+transform[5]*src_ds_ETObs.RasterYSize,transform[3]
+#print xmin
+#print xmax
 
 fig, ax = plt.subplots()
-im1 = ax.imshow(bandET_modis, extent=[xmin,xmax,ymin,ymax], interpolation='None', cmap=plt.cm.gray, vmin=0, vmax=300)
+im1 = ax.imshow(bandETModelada, interpolation='none', cmap=plt.get_cmap('gray'), extent=[xmin,xmax,ymin,ymax], clim=(0, 1))
 ax.xaxis.tick_top()
 divider = make_axes_locatable(ax)
 cax = divider.append_axes('bottom', size="5%", pad=0.05)
 cb = plt.colorbar(im1, cax=cax, orientation="horizontal")
-#cb.set_label('Volumetric SM (%)')
-cb.set_label('ET Modis (W/m^2)')
-#cb.set_clim(vmin=5, vmax=55)
-#ax.set_xlabel(label.format(mse_none, ssim_none))
-#ax.set_title('ET MODIS')
+cb.set_label('Evapotranspiration Modeled')
+#### (W/m^2)
+print ("ET modelado:")
+print ("Max:" + str(np.max(bandETModelada)))
+print ("Min:" + str(np.min(bandETModelada)))
+print ("Std:" + str(np.std(bandETModelada)))                
 
+
+### mapas ET observado interpolado
 fig, ax = plt.subplots()
-im2 = ax.imshow(bandET_modeled, extent=[xmin,xmax,ymin,ymax], interpolation='None', cmap=plt.cm.gray, vmin=0, vmax=300)
+bandETObs = bandETObs*1000
+bandETObs = (bandETObs- np.min(bandETObs)) /(np.max(bandETObs)-np.min(bandETObs))
+im0 = ax.imshow(bandETObs, cmap=plt.get_cmap('gray'), extent=[xmin,xmax,ymin,ymax], interpolation='none', clim=(0, 1))
 ax.xaxis.tick_top()
 divider = make_axes_locatable(ax)
 cax = divider.append_axes('bottom', size="5%", pad=0.05)
-cb = plt.colorbar(im2, cax=cax, orientation="horizontal")
-#cb.set_label('Volumetric SM (%)')
-cb.set_label('ET Modeled (W/m^2)')
-#cb.set_clim(vmin=5, vmax=55)
-ax.set_xlabel(label.format(mse_noise, ssim_noise))
-#ax.set_title('ET MODIS')
+cb = plt.colorbar(im0, cax=cax, orientation="horizontal")
+cb.set_label('Evapotranspiration Observed')
+#cb.set_clim(vmin=5, vmax=50)
+
+print ("ET observado:")
+print ("Max:" + str(np.max(bandETObs)))
+print ("Min:" + str(np.min(bandETObs)))
+print ("Std:" + str(np.std(bandETObs)))               
+
+### error entre ET modelado y ET observado
+print("Error entre ET modelado y observado")
+
+mse_noise= mean_squared_error(y_true = bandETObs , y_pred = bandETModelada)
+mse_noise = np.sqrt(mse_noise)
+#mse_noise= compare_mse(bandET_modis, bandET_modeled)        
+ssim_noise = ssim(bandETObs.flatten(), bandETModelada.flatten())
 
 print("SSIM:" +str(ssim_noise))
-
 print("RMSE:" + str(mse_noise))
 
-#im2 = ax[1].imshow(bandET_modeled,extent=[xmin,xmax,ymin,ymax], interpolation='None', cmap=plt.cm.gray, vmin=0, vmax=350)
-#ax[1].set_xlabel(label.format(mse_noise, ssim_noise))
-#ax[1].set_title('ET modeled')
-
-#ax[2].imshow(img_const, cmap=plt.cm.gray, vmin=0, vmax=1)
-#ax[2].set_xlabel(label.format(mse_const, ssim_const))
-#ax[2].set_title('Image plus constant')
-#cbar = fig.colorbar(cax)
-
-#divider = make_axes_locatable(ax[0])
-#cax = divider.append_axes("right", size="5%", pad=0.3)
-#cba = plt.colorbar(pa, cax=cax)
-
-#axlist = [ax[0],ax[1]]
-#
-#divider = make_axes_locatable(axlist)
-#cax = divider.new_vertical(size="5%", pad=0.7, pack_start=True)
-
-#fig.colorbar(im2, cax=cax, orientation="horizontal")
-
-#fig.colorbar(im2, ax=axes, orientation='horizontal', fraction=.1)
-
-#fig.colorbar(im1, orientation='horizontal') 
-plt.tight_layout()
-plt.show()
+fig, ax = plt.subplots()
+errorModelado = np.sqrt((bandETModelada - bandETObs)**2)
+im0 = ax.imshow(errorModelado, cmap=plt.cm.jet, extent=[xmin,xmax,ymin,ymax], interpolation='none', clim=(0, 1))
+ax.xaxis.tick_top()
+divider = make_axes_locatable(ax)
+cax = divider.append_axes('bottom', size="5%", pad=0.05)
+cb = plt.colorbar(im0, cax=cax, orientation="horizontal")
+cb.set_label('RMSE')
+#        cb.set_clim(vmin=5, vmax=50)
+plt.show()               
