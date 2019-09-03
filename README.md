@@ -4,6 +4,8 @@ Structural similarity index (SSIM) and mean squared error (MSE)
 
 SSIM is a method that attempts to model the perceived change in the structural information of the image (Wang et al., 2004). The SSIM can be interpreted as a measure of quality of one of the images that are compared, while the other image is considered of perfect quality. The index equation is as follows:
 
+<img src="https://latex.codecogs.com/svg.latex?\Large&space;x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}" title="\Large x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}" />
+
 $$SSIM (x, y) = \frac {(2 \mu_x \mu_y + C_1) (2 \sigma_{xy} + C_2)} {(\mu_x^2 + \mu_y^2 + C_1) (\sigma_x^2 + \sigma_y^2 + C_2)}$$
 
 where $\mu$ is the average of the intensities of the pixels in the x and y direction; $\sigma$ is the variance of the intensities in the x and y direction; and $\sigma_{xy}$ is the covariance. The value of SSIM varies between -1 and 1, where 1 indicates a perfect similarity.
